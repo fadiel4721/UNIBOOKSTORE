@@ -11,14 +11,18 @@ class AdminController extends Controller
     /**
      * Menampilkan halaman admin dengan daftar buku dan penerbit
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bukus = Buku::all();
+        // Ambil daftar penerbit untuk dropdown
         $penerbits = Penerbit::all();
+
+        // Ambil buku dengan relasi penerbit, paginate 10 per halaman
+        $bukus = Buku::with('penerbit')
+            ->orderBy('nama_buku')
+            ->paginate(10);
 
         return view('admin', compact('bukus', 'penerbits'));
     }
-
     /**
      * Menyimpan data buku baru
      */
@@ -31,11 +35,20 @@ class AdminController extends Controller
             'harga' => 'required|numeric',
             'stok' => 'required|integer',
             'id_penerbit' => 'required|exists:penerbits,id',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Simpan buku ke database
-        Buku::create($request->all());
+        $data = $request->all();
 
+        // Jika ada file gambar yang diupload
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('covers', 'public');
+        }
+
+        // Simpan ke database
+        Buku::create($data);
+
+        session()->flash('message', 'Buku berhasil ditambahkan');
         return redirect()->route('admin.index');
     }
 
@@ -44,8 +57,6 @@ class AdminController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $buku = Buku::findOrFail($id);
-
         // Validasi input
         $request->validate([
             'nama_buku' => 'required',
@@ -53,11 +64,20 @@ class AdminController extends Controller
             'harga' => 'required|numeric',
             'stok' => 'required|integer',
             'id_penerbit' => 'required|exists:penerbits,id',
+            'foto' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        // Update data buku
-        $buku->update($request->all());
+        $buku = Buku::findOrFail($id);
+        $data = $request->all();
 
+        // Jika ada file baru diupload, simpan dan timpa
+        if ($request->hasFile('foto')) {
+            $data['foto'] = $request->file('foto')->store('covers', 'public');
+        }
+
+        $buku->update($data);
+
+        session()->flash('message', 'Buku berhasil diupdate');
         return redirect()->route('admin.index');
     }
 
@@ -68,6 +88,7 @@ class AdminController extends Controller
     {
         Buku::destroy($id);
 
+        session()->flash('message', 'Buku berhasil dihapus');
         return redirect()->route('admin.index');
     }
 }

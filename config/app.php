@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+
+    'procurement_threshold' => env('PROCUREMENT_THRESHOLD', 10),
+
 ];

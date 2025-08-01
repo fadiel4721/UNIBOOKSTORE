@@ -19,6 +19,8 @@ class Buku extends Model
         'harga',
         'stok',
         'id_penerbit',
+        'foto',
+        'favorit',
     ];
 
     /**

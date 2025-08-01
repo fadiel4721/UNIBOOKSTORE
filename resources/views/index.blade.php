@@ -1,22 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toko Buku</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container mt-4">
-        <h1>Daftar Buku</h1>
+@extends('layouts.app')
 
-        <form method="GET" action="{{ route('home') }}" class="mb-3">
-            <input type="text" name="search" class="form-control" placeholder="Cari Buku...">
-            <button type="submit" class="btn btn-primary mt-2">Cari</button>
-        </form>
+@section('content')
+    <h1 class="text-center mb-4">Daftar Buku</h1>
 
-        <table class="table">
-            <thead>
+    <!-- Form Pencarian -->
+    <form method="GET" action="{{ route('home') }}" class="mb-4 d-flex justify-content-center">
+        <input type="text" name="search" class="form-control" placeholder="Cari Buku..." value="{{ $search }}"
+            style="max-width: 400px;">
+        <button type="submit" class="btn btn-primary ms-2">Cari</button>
+    </form>
+
+    <!-- Tabel Daftar Buku -->
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered align-middle">
+            <thead class="table-primary">
                 <tr>
                     <th>Nama Buku</th>
                     <th>Kategori</th>
@@ -26,17 +23,38 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($bukus as $buku)
-                <tr>
-                    <td>{{ $buku->nama_buku }}</td>
-                    <td>{{ $buku->kategori }}</td>
-                    <td>{{ $buku->harga }}</td>
-                    <td>{{ $buku->stok }}</td>
-                    <td>{{ $buku->penerbit->nama }}</td>
-                </tr>
-                @endforeach
+                @forelse ($bukus as $buku)
+                    <tr>
+                        <td>{{ $buku->nama_buku }}</td>
+                        <td>{{ $buku->kategori }}</td>
+                        <td>Rp {{ number_format($buku->harga, 0, ',', '.') }}</td>
+                        <td>{{ $buku->stok }}</td>
+                        <td>{{ $buku->penerbit->nama }}</td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="5" class="text-center">Tidak ada data buku.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
-</body>
-</html>
+
+    <!-- Pagination -->
+    <div class="d-flex justify-content-center">
+        {{ $bukus->links('pagination::bootstrap-5') }}
+    </div>
+@endsection
+
+@section('scripts')
+    @if (session('message'))
+        <script>
+            Swal.fire({
+                icon: '{{ session('message_icon') }}',
+                title: '{{ session('message') }}',
+                showConfirmButton: false,
+                timer: 1800
+            });
+        </script>
+    @endif
+@endsection
